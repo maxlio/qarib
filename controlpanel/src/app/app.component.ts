@@ -1,5 +1,8 @@
+import { NewCampaignDialogComponent } from './new-campaign.component';
+import { MatDialog , MatDialogConfig } from '@angular/material';
 import { Component, ViewChild, OnInit } from '@angular/core';
 import { } from '@types/googlemaps';
+
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
@@ -7,12 +10,20 @@ import { } from '@types/googlemaps';
 })
 
 export class AppComponent implements OnInit {
+  constructor(private dialog: MatDialog) {}
   @ViewChild('gmap') gmapElement: any;
   map: google.maps.Map;
   title = 'QARIB Dashboard';
   routes = [];
+  markers = [];
   renderer: google.maps.DirectionsRenderer;
   directionService: google.maps.DirectionsService;
+  openDialog() {
+    const dialogConfig = new MatDialogConfig();
+    dialogConfig.disableClose = true;
+    dialogConfig.autoFocus = true;
+    this.dialog.open(NewCampaignDialogComponent, dialogConfig);
+  }
   ngOnInit() {
     const icons = {
       start: {
@@ -60,20 +71,20 @@ export class AppComponent implements OnInit {
     this.renderer.setMap(this.map);
     getRoutes(this.directionService, this.map, colors, icons, requests);
   }
+}
   async function getRoutes(directionService, map, colors, icons, requests) {
   let routes = [];
   await requests.forEach((request, key) => {
     directionService.route(request, (res, status) => {
       if (status.toString() === 'OK') {
-        console.log(res);
         let leg = res.routes[0].legs[0];
         let startMarker = makeMarker(leg.start_location, icons.start, 'title', map);
         let markerWindow = makeWindow('<h3> Distance:' + res.routes[0].legs[0].distance.text + '</h3><h3> Duration:' + res.routes[0].legs[0].duration.text + '</h3>');
         let endMarker = makeMarker(leg.end_location, icons.end, 'title', map);
-        startMarker.addListener('click', function(){
+        startMarker.addListener('click', function () {
           markerWindow.open(map, startMarker);
         });
-        endMarker.addListener('click', function(){
+        endMarker.addListener('click', function () {
           markerWindow.open(map, endMarker);
         });
         let displayer = new google.maps.DirectionsRenderer({
@@ -101,4 +112,3 @@ function makeWindow(content) {
     content: content
   });
 }
-
